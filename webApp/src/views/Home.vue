@@ -3,7 +3,7 @@
     import { Vue3Lottie } from 'vue3-lottie';
     import { replaceColor } from 'lottie-colorify';
     import AnimationTasks from "../assets/lotties/animation-tasks.json";
-    import { List, Checkbox } from 'tele-vue-lib';
+    import { List, Checkbox } from '@erfanmola/televue';
     import WebApp from '@twa-dev/sdk';
     import SparkMD5 from 'spark-md5';
     import Pusher from 'pusher-js';

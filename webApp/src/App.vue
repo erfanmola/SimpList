@@ -1,6 +1,6 @@
 <script setup>
-    import { AppearanceProvider, LocaleProvider, AuthProvider } from 'tele-vue-lib';
-    import 'tele-vue-lib/style.css';
+    import { AppearanceProvider, LocaleProvider, AuthProvider } from '@erfanmola/televue';
+    import '@erfanmola/televue/style.css';
 
     const devMode = (import.meta.env.MODE === 'development') && true;
     const hex_hmac_signature = import.meta.env.VITE_HEX_HMAC_SIGNATURE;
