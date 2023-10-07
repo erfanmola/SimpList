@@ -1,0 +1,585 @@
+<script setup>
+    import { computed, ref, onMounted, watch, inject, nextTick } from 'vue';
+    import { Vue3Lottie } from 'vue3-lottie';
+    import { replaceColor } from 'lottie-colorify';
+    import AnimationTasks from "../assets/lotties/animation-tasks.json";
+    import { List, Checkbox } from 'tele-vue-lib';
+    import WebApp from '@twa-dev/sdk';
+    import SparkMD5 from 'spark-md5';
+    import Pusher from 'pusher-js';
+    import { useI18n } from "vue-i18n";
+
+    const i18nLocale = useI18n({ useScope: 'global' });
+    i18nLocale.locale.value = inject('locale', 'en');
+
+    const tasks = ref({});
+
+    const visibletasksCount = 5;
+    const showAllTasks = ref(false);
+
+    const syncing = ref(false);
+    
+    const addingTask = ref(false);
+    const addingTaskTitle = ref(null);
+    const addingTaskTitleText = ref("");
+
+    const tasksList = computed(() => {
+
+        return showAllTasks.value ?
+               Object.fromEntries(Object.entries(tasks.value).sort((a, b) => { return b[1].created_at - a[1].created_at; })) :
+               Object.fromEntries(Object.entries(tasks.value).sort((a, b) => { return b[1].created_at - a[1].created_at; }).slice(0, visibletasksCount));
+
+    });
+
+    const btnClickAddTask = async () => {
+
+        if (!(addingTask.value)) {
+
+            addingTask.value = true;
+
+            await nextTick();
+
+            addingTaskTitle.value.focus();
+
+        }
+
+    };
+
+    const addTask = () => {
+
+        if (addingTaskTitleText.value.length > 0) {
+            
+            let taskID = `task_${ generateRandomMD5() }`;
+
+            let task = {
+                title: addingTaskTitleText.value,
+                content: null,
+                created_at: parseInt(Date.now() / 1000),
+                updated_at: parseInt(Date.now() / 1000),
+                done: false,
+            };
+
+            localStorage.setItem(taskID, JSON.stringify(task));
+            tasks.value[taskID] = task;
+
+            WebApp.CloudStorage.setItem(taskID, localStorage.getItem(taskID), (error, success) => {
+                    
+                if (error) {
+                    
+                    let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+                    pending_tasks[taskID] = task;
+                    localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
+                    
+                    WebApp.HapticFeedback.notificationOccurred('error');
+                    return;
+
+                }
+
+                channel.trigger('client-fetch', JSON.stringify({ action: 'add' }));
+
+                WebApp.HapticFeedback.notificationOccurred('success');
+
+            });
+
+        }
+
+        addingTaskTitleText.value = "";
+        addingTask.value = false;
+
+    };
+
+    const fetchTasks = async (useLocalStorage = true) => {
+
+        syncing.value = true;
+
+        if (useLocalStorage) {
+
+            let localTasks = Object.fromEntries(Object.keys(localStorage).filter((key) => {
+
+                return /^task_[a-f0-9]{32}$/gi.test(key);
+
+            }).map((key) => {
+
+                return [ key, JSON.parse(localStorage.getItem(key)) ];
+
+            }));
+
+            tasks.value = localTasks;
+
+        }
+
+        await WebApp.CloudStorage.getKeys((error, keys) => {
+            
+            if (error) {
+
+                WebApp.HapticFeedback.notificationOccurred('error');
+                return;
+
+            }
+
+            WebApp.CloudStorage.getItems(keys, (error, items) => {
+
+                if (error) {
+
+                    WebApp.HapticFeedback.notificationOccurred('error');
+                    return;
+
+                }
+
+                WebApp.HapticFeedback.notificationOccurred('success');
+
+                Object.keys(tasks.value).forEach((key) => {
+                    
+                    localStorage.removeItem(key);
+
+                });
+
+                items = Object.fromEntries(
+                    Object.entries(items).map(([ key, value ]) => { 
+                        localStorage.setItem(key, value);
+                        return [ key, JSON.parse(value) ]; 
+                    })
+                );
+
+                tasks.value = items;
+
+                syncing.value = false;
+
+            });
+
+        });
+
+    };
+
+    const updateTask = async (taskID) => {
+
+        tasks.value[taskID].updated_at = parseInt(Date.now() / 1000);
+
+        localStorage.setItem(taskID, JSON.stringify(tasks.value[taskID]));
+
+        WebApp.CloudStorage.setItem(taskID, JSON.stringify(tasks.value[taskID]), (error, success) => {
+
+            if (error) {
+                
+                let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+                pending_tasks[taskID] = tasks.value[taskID];
+                localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
+                
+                WebApp.HapticFeedback.notificationOccurred('error');
+                return;
+
+            }
+
+            let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+            delete pending_tasks[taskID];
+            localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
+            
+            channel.trigger('client-fetch', JSON.stringify({ action: 'toggle' }));
+
+            WebApp.HapticFeedback.notificationOccurred('success');
+
+        });
+
+    };
+
+    const deleteTask = async (taskID) => {
+
+        delete tasks.value[taskID];
+
+        localStorage.removeItem(taskID);
+
+        WebApp.CloudStorage.removeItem(taskID, (error, success) => {
+
+            if (error) {
+                
+                WebApp.HapticFeedback.notificationOccurred('error');
+                return;
+
+            }
+
+            let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+            delete pending_tasks[taskID];
+            localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
+
+            channel.trigger('client-fetch', JSON.stringify({ action: 'delete' }));
+
+            WebApp.HapticFeedback.notificationOccurred('success');
+
+        });
+
+    };
+
+    const performPendingTasks = () => {
+
+        let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+
+        Object.keys(pending_tasks).forEach((taskID) => {
+
+            WebApp.CloudStorage.setItem(taskID, JSON.stringify(pending_tasks[taskID]), (error, success) => {
+
+                if (error) {
+                    
+                    return;
+
+                }
+
+                let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+                delete pending_tasks[taskID];
+                localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
+
+            });
+
+        });
+
+    };
+
+    const btnClickDeleteTask = (taskID) => {
+
+        WebApp.showPopup({
+            title: i18nLocale.t('home.dialog_delete_task.title'),
+            message: i18nLocale.t('home.dialog_delete_task.message'),
+            buttons: [
+                { id: "cancel",  type: "cancel"     , text: i18nLocale.t('home.dialog_delete_task.buttons.cancel') },
+                { id: "confirm", type: "destructive", text: i18nLocale.t('home.dialog_delete_task.buttons.delete') },
+            ]
+        }, (id) => {
+
+            if (id === 'confirm') {
+
+                deleteTask(taskID);
+
+            }
+
+        });
+
+    };
+
+    const generateRandomMD5 = () => {
+    
+        // Generate a random string
+        const randomString = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+
+        // Calculate MD5 hash of the random string using spark-md5 library
+        return SparkMD5.hash(randomString);
+
+    }
+
+    const TaskSwipeHandler = (direction, e) => {
+
+        if (document.body.classList.contains('rtl')) {
+
+            if (direction === 'right' && !(e.currentTarget.classList.contains('swiped'))) {
+
+                e.currentTarget.classList.add('swiped');
+
+            }else if (direction === 'left' && e.currentTarget.classList.contains('swiped')) {
+
+                e.currentTarget.classList.remove('swiped');
+
+            }
+
+        }else{
+
+            if (direction === 'left' && !(e.currentTarget.classList.contains('swiped'))) {
+
+                e.currentTarget.classList.add('swiped');
+
+            }else if (direction === 'right' && e.currentTarget.classList.contains('swiped')) {
+
+                e.currentTarget.classList.remove('swiped');
+
+            }
+
+        }
+
+    };
+
+    const hexAlphaToRGB = (colorHex, alpha, backgroundColorHex) => {
+
+        const hexToRgb = (hex) => {
+            hex = hex.replace(/^#/, '');
+            const bigint = parseInt(hex, 16);
+            const red = (bigint >> 16) & 255;
+            const green = (bigint >> 8) & 255;
+            const blue = bigint & 255;
+            return [red, green, blue];
+        };
+
+        const rgbaColor = [...hexToRgb(colorHex), Math.round(alpha * 255)];
+        const backgroundRgb = hexToRgb(backgroundColorHex);
+
+        const opacity = rgbaColor[3] / 255;
+        const blendedRed = Math.round((1 - opacity) * backgroundRgb[0] + opacity * rgbaColor[0]);
+        const blendedGreen = Math.round((1 - opacity) * backgroundRgb[1] + opacity * rgbaColor[1]);
+        const blendedBlue = Math.round((1 - opacity) * backgroundRgb[2] + opacity * rgbaColor[2]);
+
+        return [blendedRed, blendedGreen, blendedBlue];
+
+    };
+
+    const AnimationTasksColored = computed(() => {
+
+        let animation = AnimationTasks;
+
+        animation = replaceColor([213,213,226], hexAlphaToRGB(
+            getComputedStyle(document.body).getPropertyValue('--tg-theme-button-color'),
+            0.625,
+            getComputedStyle(document.body).getPropertyValue('--tg-theme-secondary-bg-color'),
+        ), animation);
+
+        animation = replaceColor([41,121,255], getComputedStyle(document.body).getPropertyValue('--tg-theme-button-color'), animation);
+
+        animation = replaceColor([105,161,255], hexAlphaToRGB(
+            getComputedStyle(document.body).getPropertyValue('--tg-theme-button-color'),
+            0.625,
+            getComputedStyle(document.body).getPropertyValue('--tg-theme-secondary-bg-color'),
+        ), animation);
+
+        animation = replaceColor([190,190,206], getComputedStyle(document.body).getPropertyValue('--tg-theme-button-color'), animation);
+
+        animation = replaceColor([233,233,244], getComputedStyle(document.body).getPropertyValue('--tg-theme-bg-color'), animation);
+
+        animation = replaceColor([181,209,255], hexAlphaToRGB(
+            getComputedStyle(document.body).getPropertyValue('--tg-theme-button-color'),
+            0.325,
+            getComputedStyle(document.body).getPropertyValue('--tg-theme-secondary-bg-color'),
+        ), animation);
+
+        return animation;
+
+    });
+
+    onMounted(async () => {
+
+        fetchTasks();
+
+        watch(tasks, () => {
+
+            Object.entries(tasks.value).forEach(([ key, value ]) => {
+
+                if (JSON.stringify(value) !== (localStorage.getItem(key))) {
+
+                    updateTask(key);
+
+                }
+
+            });
+
+        }, { deep: true });
+
+        channel.bind('pusher:subscription_succeeded', () => {
+
+            channel.bind('client-fetch', function(data) {
+
+                fetchTasks(false);
+
+            });
+
+        });
+
+        performPendingTasks();
+
+    });
+
+    const pusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
+        cluster: 'ap2',
+        authEndpoint: `${ import.meta.env.VITE_BACKEND_ENDPOINT }/pusher/auth`,
+        auth: {
+            params: {
+                'initDataUnsafe': JSON.stringify(WebApp.initDataUnsafe),
+            }
+        }
+    });
+
+    const channel = pusher.subscribe(`private-${ WebApp.initDataUnsafe.user?.id }`);
+
+    WebApp.setHeaderColor('secondary_bg_color');
+</script>
+
+<template>
+    <div id="container-home">
+
+        <Vue3Lottie id="lottie-done" :animationData="AnimationTasksColored" :noMargin="true" :loop="false" />
+
+        <h1>{{ $t('general.title') }}</h1>
+
+        <List id="list-tasks">
+
+            <li @click="btnClickAddTask" style="color: var(--tg-theme-button-color);">
+                <div>
+                    <svg class="material-only" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="fill: var(--tg-theme-button-color);">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10ZM10 15.6667C9.2 15.6667 9 15 9 14.6667V11H5.33333C5 11 4.33333 10.8 4.33333 10C4.33333 9.2 5 9 5.33333 9H9V5.33333C9 5 9.2 4.33333 10 4.33333C10.8 4.33333 11 5 11 5.33333V9H14.6667C15 9 15.6667 9.2 15.6667 10C15.6667 10.8 15 11 14.6667 11H11V14.6667C11 15 10.8 15.6667 10 15.6667Z" />
+                    </svg>
+
+                    <svg class="apple-only" width="16" height="16" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="stroke: var(--tg-theme-button-color);">
+                        <path d="M7 0V14M0 7H14" stroke-width="1.995" />
+                    </svg>
+
+                    <span>{{ $t('home.add_task') }}</span>
+                </div>
+            </li>
+
+            <li v-if="addingTask" id="adding-task">
+                <div>
+                    <Checkbox :disabled="true" />
+                    <input type="text" v-model="addingTaskTitleText" ref="addingTaskTitle" @focusout="addingTask = false" @keyup.enter="addTask" />
+                </div>
+            </li>
+
+            <li v-for="(task, taskID) in tasksList" class="item-task" v-touch:swipe="TaskSwipeHandler" :key="taskID">
+                <div>
+                    <Checkbox v-model:checked="task.done" />
+                    <input type="text" v-model="task.title" />
+                </div>
+
+                <div>
+                    <div class="action-delete" @click="btnClickDeleteTask(taskID)">
+                        <svg width="18" height="19" viewBox="0 0 18 19" fill="none" xmlns="http://www.w3.org/2000/svg" style="fill: var(--tele-vue-danger-button-text-color);">
+                            <path d="M6.54297 15.8423C6.38802 15.8423 6.26351 15.798 6.16943 15.7095C6.07536 15.6209 6.02555 15.502 6.02002 15.3525L5.771 6.479C5.76546 6.33512 5.80973 6.21891 5.90381 6.13037C6.00342 6.0363 6.1307 5.98926 6.28564 5.98926C6.43506 5.98926 6.5568 6.03353 6.65088 6.12207C6.75049 6.21061 6.80029 6.32682 6.80029 6.4707L7.05762 15.3525C7.05762 15.4964 7.01058 15.6154 6.9165 15.7095C6.82243 15.798 6.69792 15.8423 6.54297 15.8423ZM9 15.8423C8.84505 15.8423 8.71777 15.798 8.61816 15.7095C8.51855 15.6154 8.46875 15.4964 8.46875 15.3525V6.479C8.46875 6.33512 8.51855 6.21891 8.61816 6.13037C8.71777 6.0363 8.84505 5.98926 9 5.98926C9.16048 5.98926 9.29053 6.0363 9.39014 6.13037C9.48975 6.21891 9.53955 6.33512 9.53955 6.479V15.3525C9.53955 15.4964 9.48975 15.6154 9.39014 15.7095C9.29053 15.798 9.16048 15.8423 9 15.8423ZM11.4653 15.8423C11.3049 15.8423 11.1776 15.798 11.0835 15.7095C10.9894 15.6154 10.9451 15.4964 10.9507 15.3525L11.1997 6.479C11.2052 6.32959 11.255 6.21061 11.3491 6.12207C11.4432 6.03353 11.5649 5.98926 11.7144 5.98926C11.8748 5.98926 12.0021 6.0363 12.0962 6.13037C12.1903 6.21891 12.2345 6.33512 12.229 6.479L11.98 15.3525C11.9744 15.502 11.9246 15.6209 11.8306 15.7095C11.7365 15.798 11.6147 15.8423 11.4653 15.8423ZM5.35596 3.82275V1.96338C5.35596 1.36572 5.53857 0.895345 5.90381 0.552246C6.27458 0.203613 6.77816 0.0292969 7.41455 0.0292969H10.5688C11.2052 0.0292969 11.7061 0.203613 12.0713 0.552246C12.4421 0.895345 12.6274 1.36572 12.6274 1.96338V3.82275H11.3076V2.04639C11.3076 1.81396 11.2301 1.62581 11.0752 1.48193C10.9258 1.33805 10.7266 1.26611 10.4775 1.26611H7.50586C7.25684 1.26611 7.05485 1.33805 6.8999 1.48193C6.75049 1.62581 6.67578 1.81396 6.67578 2.04639V3.82275H5.35596ZM1.5874 4.48682C1.42139 4.48682 1.27474 4.42594 1.14746 4.3042C1.02572 4.17692 0.964844 4.02751 0.964844 3.85596C0.964844 3.68994 1.02572 3.54606 1.14746 3.42432C1.27474 3.29704 1.42139 3.2334 1.5874 3.2334H16.4209C16.5869 3.2334 16.7308 3.29427 16.8525 3.41602C16.9743 3.53776 17.0352 3.68441 17.0352 3.85596C17.0352 4.02751 16.9743 4.17692 16.8525 4.3042C16.7363 4.42594 16.5924 4.48682 16.4209 4.48682H1.5874ZM5.19824 18.5151C4.60059 18.5151 4.11637 18.3381 3.74561 17.9839C3.38037 17.6353 3.18392 17.1621 3.15625 16.5645L2.56689 4.3291H3.87012L4.45947 16.415C4.47054 16.6585 4.55632 16.8605 4.7168 17.021C4.87728 17.1815 5.0765 17.2617 5.31445 17.2617H12.6772C12.9207 17.2617 13.1227 17.1815 13.2832 17.021C13.4437 16.866 13.5295 16.6641 13.5405 16.415L14.0967 4.3291H15.4331L14.8521 16.5562C14.8244 17.1538 14.6252 17.6297 14.2544 17.9839C13.8836 18.3381 13.4022 18.5151 12.8101 18.5151H5.19824Z" />
+                        </svg>
+                    </div>
+                </div>
+            </li>
+
+            <li v-if="Object.keys(tasks).length > visibletasksCount && !(showAllTasks)" style="color: var(--tg-theme-button-color);" @click="showAllTasks = true">
+                <div>
+                    <svg width="18" height="10" viewBox="0 0 19 11" fill="none" xmlns="http://www.w3.org/2000/svg" style="fill: var(--tg-theme-button-color);">
+                        <path d="M9.50003 11L19 2.17177L16.9712 0L9.50003 7.13773L2.02881 0L-2.41856e-05 2.17177L9.50003 11Z" />
+                    </svg>
+
+                    <span>{{ $t('home.show_n_more_task', { count: (Object.keys(tasks).length - visibletasksCount) }) }}</span>
+                </div>
+            </li>
+
+        </List>
+
+        <div v-if="Object.keys(tasksList).length === 0 && !(addingTask)" id="no-tasks">
+            {{ $t('home.no_tasks') }}
+        </div>
+        
+    </div>
+</template>
+
+<style lang="scss">
+
+    body {
+        background-color: var(--tg-theme-secondary-bg-color);
+    }
+
+    #container-home {
+        display: flex;
+        flex-direction: column;
+
+        #lottie-done {
+            width: 50%;
+            margin: 0 auto -1rem;
+            padding-left: 0.75rem;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        #list-tasks, #no-tasks {
+            background-color: var(--tg-theme-bg-color);
+            margin: 0 auto;
+            width: 90%;
+            border-radius: 1rem;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        #list-tasks {
+            margin-bottom: 2rem;
+
+            > li {
+                > div {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                }
+            }
+        }
+
+        #no-tasks {
+            padding: 1rem;
+            text-align: center;
+        }
+
+        #adding-task, .item-task {
+
+            input[type=text] {
+                border: none;
+                outline: none;
+                caret-color: var(--tg-theme-button-color);
+                background: transparent;
+                color: var(--tg-theme-text-color);
+                font-size: 1rem;
+            }
+
+        }
+
+        .item-task {
+            position: relative;
+
+            > div {
+                transition: all .125s ease-in-out;
+
+                &:first-child {
+                    width: 100%;
+                }
+
+                &:last-child {
+                    position: absolute;
+                    height: 100%;
+                    left: 100%;
+                    width: 100%;
+                    top: 0;
+                    display: flex;
+
+                    > div.action-delete {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        height: 100%;
+                        background-color: var(--tele-vue-danger-button-color);
+                        color: var(--tele-vue-danger-button-text-color);
+                        font-size: 0.925rem;
+                        width: 15%;
+                    }
+                }
+            }
+
+            &.swiped {
+                > div {
+                    transform: translateX(-15%);
+                }
+            }
+        }
+    }
+
+    body.rtl {
+
+        .item-task {
+
+            > div {
+                &:last-child {
+                    left: auto;
+                    right: 100%;
+                }
+            }
+
+            &.swiped {
+                > div {
+                    transform: translateX(15%) !important;
+                }
+            }
+        }
+
+    }
+
+</style>

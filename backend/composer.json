@@ -1,0 +1,7 @@
+{
+    "require": {
+        "openswoole/core": "^22.1",
+        "vlucas/phpdotenv": "^5.5",
+        "pusher/pusher-php-server": "^7.2"
+    }
+}
