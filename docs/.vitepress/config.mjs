@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: "/SimpList/",
   title: "SimpList Documentation",
   description: "Setup guide & documentations of SimpList Telegram WebApp",
   themeConfig: {
