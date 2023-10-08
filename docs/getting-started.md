@@ -27,3 +27,6 @@ You can read our brief explanation about [Setting Up the BackEnd](/setting-up-ba
 ## TeleVue
 
 [TeleVue](https://github.com/erfanmola/TeleVue) is a Telegram UI Library for VueJS developed mainly for the purpose of building SimpList, it's considered as a part of the SimpList project, but developed and maintained seperatly for isolation, portability and more importantly, usability.  
+
+## License
+[MIT](https://github.com/erfanmola/SimpList/blob/master/LICENSE)
