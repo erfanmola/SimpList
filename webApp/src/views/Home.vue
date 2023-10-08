@@ -1,5 +1,5 @@
 <script setup>
-    import { computed, ref, onMounted, watch, inject, nextTick } from 'vue';
+    import { computed, ref, onMounted, watch, inject, nextTick, onUnmounted } from 'vue';
     import { useI18n } from "vue-i18n";
 
     import Pusher from 'pusher-js';
@@ -481,6 +481,13 @@
 
         // We also try performing `pending_tasks` if there is any
         performPendingTasks();
+
+    });
+
+    onUnmounted(() => {
+
+        channel.unbind_all();
+        channel.unsubscribe(`private-${ WebApp.initDataUnsafe.user?.id }`);
 
     });
 
