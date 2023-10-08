@@ -6,7 +6,7 @@ SimpList is built upon the principles of [Telegram Mini Apps Contest](https://t.
 
 At the very first step, we need to clone the SimpList's Github repository in order to get started.
 
-```
+```bash
 git clone https://github.com/erfanmola/SimpList.git
 ```
 
@@ -19,3 +19,7 @@ At this step, We recommend you to read our brief explanation about [Technologies
 ## Setting Up the BackEnd
 
 ## Setting Up the Telegram Bot
+
+## TeleVue
+
+[TeleVue](https://github.com/erfanmola/TeleVue) is a Telegram UI Library for VueJS developed mainly for the purpose of building SimpList, it's considered as a part of the SimpList project, but developed and maintained seperatly for isolation, portability and more importantly, usability.  
