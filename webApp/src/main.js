@@ -1,9 +1,11 @@
 import { createApp } from 'vue';
 import { createI18n } from 'vue-i18n';
-import App from './App.vue';
-import router from './router';
 import Vue3TouchEvents from "vue3-touch-events";
 
+import App from './App.vue';
+import router from './router';
+
+// Import i18n locales
 import i18n_en from './i18n/lang-en';
 import i18n_fa from './i18n/lang-fa';
 import i18n_ar from './i18n/lang-ar';

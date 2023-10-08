@@ -1,336 +1,57 @@
 <script setup>
     import { computed, ref, onMounted, watch, inject, nextTick } from 'vue';
+    import { useI18n } from "vue-i18n";
+
+    import Pusher from 'pusher-js';
+    import SparkMD5 from 'spark-md5';
+
+    import WebApp from '@twa-dev/sdk';
+    import { List, Checkbox } from '@erfanmola/televue';
+
     import { Vue3Lottie } from 'vue3-lottie';
     import { replaceColor } from 'lottie-colorify';
     import AnimationTasks from "../assets/lotties/animation-tasks.json";
-    import { List, Checkbox } from '@erfanmola/televue';
-    import WebApp from '@twa-dev/sdk';
-    import SparkMD5 from 'spark-md5';
-    import Pusher from 'pusher-js';
-    import { useI18n } from "vue-i18n";
 
     const i18nLocale = useI18n({ useScope: 'global' });
+    
+    // Set i18n locale based on the user's locale provided by <LocaleProvider>
     i18nLocale.locale.value = inject('locale', 'en');
 
+    // Define a reactive empty object that holds tasks
     const tasks = ref({});
 
+    // Define number of visible tasks in list, values more than this will be folded
     const visibletasksCount = 5;
+    // Define a reactive boolean value to control whether the task list is folded or expanded
     const showAllTasks = ref(false);
-
-    const syncing = ref(false);
     
+    // Define a reactive boolean value to toggle the visibility of add task input box
     const addingTask = ref(false);
+    // Define a reactive null value that will hold our ref to <input> element of add task input box
     const addingTaskTitle = ref(null);
+    // Define a reactive string value that will hold our v-model to add task input box
     const addingTaskTitleText = ref("");
 
+    /* */
+
+    // === Computed Values ===
+
+    // Compute & Sort the tasks
     const tasksList = computed(() => {
 
+        // This method will check whether we should return all of the tasks
+        // Or we should return the first N task, based on state of `showAllTasks`
+
+        // We sort the based on their `created_at` value in descending order
+
         return showAllTasks.value ?
-               Object.fromEntries(Object.entries(tasks.value).sort((a, b) => { return b[1].created_at - a[1].created_at; })) :
-               Object.fromEntries(Object.entries(tasks.value).sort((a, b) => { return b[1].created_at - a[1].created_at; }).slice(0, visibletasksCount));
+               Object.fromEntries(Object.entries(tasks.value).sort((a, b) => { return b[1].created_at - a[1].created_at; })) : // return all tasks
+               Object.fromEntries(Object.entries(tasks.value).sort((a, b) => { return b[1].created_at - a[1].created_at; }).slice(0, visibletasksCount)); // return task 0 to `visibletasksCount`
 
     });
 
-    const btnClickAddTask = async () => {
-
-        if (!(addingTask.value)) {
-
-            addingTask.value = true;
-
-            await nextTick();
-
-            addingTaskTitle.value.focus();
-
-        }
-
-    };
-
-    const addTask = async (e) => {
-
-        if (addingTaskTitleText.value.length > 0) {
-            
-            let taskID = `task_${ generateRandomMD5() }`;
-
-            let task = {
-                title: addingTaskTitleText.value,
-                content: null,
-                created_at: parseInt(Date.now() / 1000),
-                updated_at: parseInt(Date.now() / 1000),
-                done: false,
-            };
-
-            localStorage.setItem(taskID, JSON.stringify(task));
-            tasks.value[taskID] = task;
-
-            WebApp.CloudStorage.setItem(taskID, localStorage.getItem(taskID), (error, success) => {
-                    
-                if (error) {
-                    
-                    let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
-                    pending_tasks[taskID] = task;
-                    localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
-                    
-                    WebApp.HapticFeedback.notificationOccurred('error');
-                    return;
-
-                }
-
-                channel.trigger('client-fetch', JSON.stringify({ action: 'add' }));
-
-                WebApp.HapticFeedback.notificationOccurred('success');
-
-            });
-
-        }
-
-        addingTaskTitleText.value = "";
-        addingTask.value = false;
-
-    };
-
-    const fetchTasks = async (useLocalStorage = true) => {
-
-        syncing.value = true;
-
-        if (useLocalStorage) {
-
-            let localTasks = Object.fromEntries(Object.keys(localStorage).filter((key) => {
-
-                return /^task_[a-f0-9]{32}$/gi.test(key);
-
-            }).map((key) => {
-
-                return [ key, JSON.parse(localStorage.getItem(key)) ];
-
-            }));
-
-            tasks.value = localTasks;
-
-        }
-
-        await WebApp.CloudStorage.getKeys((error, keys) => {
-            
-            if (error) {
-
-                WebApp.HapticFeedback.notificationOccurred('error');
-                return;
-
-            }
-
-            WebApp.CloudStorage.getItems(keys, (error, items) => {
-
-                if (error) {
-
-                    WebApp.HapticFeedback.notificationOccurred('error');
-                    return;
-
-                }
-
-                WebApp.HapticFeedback.notificationOccurred('success');
-
-                Object.keys(tasks.value).forEach((key) => {
-                    
-                    localStorage.removeItem(key);
-
-                });
-
-                items = Object.fromEntries(
-                    Object.entries(items).map(([ key, value ]) => { 
-                        localStorage.setItem(key, value);
-                        return [ key, JSON.parse(value) ]; 
-                    })
-                );
-
-                tasks.value = items;
-
-                syncing.value = false;
-
-            });
-
-        });
-
-    };
-
-    const updateTask = async (taskID) => {
-
-        tasks.value[taskID].updated_at = parseInt(Date.now() / 1000);
-
-        localStorage.setItem(taskID, JSON.stringify(tasks.value[taskID]));
-
-        WebApp.CloudStorage.setItem(taskID, JSON.stringify(tasks.value[taskID]), (error, success) => {
-
-            if (error) {
-                
-                let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
-                pending_tasks[taskID] = tasks.value[taskID];
-                localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
-                
-                WebApp.HapticFeedback.notificationOccurred('error');
-                return;
-
-            }
-
-            let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
-            delete pending_tasks[taskID];
-            localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
-            
-            channel.trigger('client-fetch', JSON.stringify({ action: 'toggle' }));
-
-            WebApp.HapticFeedback.notificationOccurred('success');
-
-        });
-
-    };
-
-    const deleteTask = async (taskID) => {
-
-        delete tasks.value[taskID];
-
-        localStorage.removeItem(taskID);
-
-        WebApp.CloudStorage.removeItem(taskID, (error, success) => {
-
-            if (error) {
-                
-                WebApp.HapticFeedback.notificationOccurred('error');
-                return;
-
-            }
-
-            let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
-            delete pending_tasks[taskID];
-            localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
-
-            channel.trigger('client-fetch', JSON.stringify({ action: 'delete' }));
-
-            WebApp.HapticFeedback.notificationOccurred('success');
-
-        });
-
-    };
-
-    const performPendingTasks = () => {
-
-        let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
-
-        Object.keys(pending_tasks).forEach((taskID) => {
-
-            WebApp.CloudStorage.setItem(taskID, JSON.stringify(pending_tasks[taskID]), (error, success) => {
-
-                if (error) {
-                    
-                    return;
-
-                }
-
-                let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
-                delete pending_tasks[taskID];
-                localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
-
-            });
-
-        });
-
-    };
-
-    const btnClickDeleteTask = (taskID) => {
-
-        WebApp.showPopup({
-            title: i18nLocale.t('home.dialog_delete_task.title'),
-            message: i18nLocale.t('home.dialog_delete_task.message'),
-            buttons: [
-                { id: "cancel",  type: "cancel"     , text: i18nLocale.t('home.dialog_delete_task.buttons.cancel') },
-                { id: "confirm", type: "destructive", text: i18nLocale.t('home.dialog_delete_task.buttons.delete') },
-            ]
-        }, (id) => {
-
-            if (id === 'confirm') {
-
-                deleteTask(taskID);
-
-            }
-
-        });
-
-    };
-
-    const generateRandomMD5 = () => {
-    
-        // Generate a random string
-        const randomString = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
-
-        // Calculate MD5 hash of the random string using spark-md5 library
-        return SparkMD5.hash(randomString);
-
-    }
-
-    const taskSwipeHandler = (direction, e) => {
-
-        if (document.body.classList.contains('rtl')) {
-
-            if (direction === 'right' && !(e.currentTarget.classList.contains('swiped'))) {
-
-                e.currentTarget.classList.add('swiped');
-
-            }else if (direction === 'left' && e.currentTarget.classList.contains('swiped')) {
-
-                e.currentTarget.classList.remove('swiped');
-
-            }
-
-        }else{
-
-            if (direction === 'left' && !(e.currentTarget.classList.contains('swiped'))) {
-
-                e.currentTarget.classList.add('swiped');
-
-            }else if (direction === 'right' && e.currentTarget.classList.contains('swiped')) {
-
-                e.currentTarget.classList.remove('swiped');
-
-            }
-
-        }
-
-    };
-
-    const taskKeyupHandler = async (e) => {
-
-        await nextTick();
-
-        e.target.blur();
-
-    };
-
-    const taskUpdateHandler = async (e) => {
-
-        tasks.value[e.target.getAttribute('data-task-id')].title = e.target.value;
-
-    };
-
-    const hexAlphaToRGB = (colorHex, alpha, backgroundColorHex) => {
-
-        const hexToRgb = (hex) => {
-            hex = hex.replace(/^#/, '');
-            const bigint = parseInt(hex, 16);
-            const red = (bigint >> 16) & 255;
-            const green = (bigint >> 8) & 255;
-            const blue = bigint & 255;
-            return [red, green, blue];
-        };
-
-        const rgbaColor = [...hexToRgb(colorHex), Math.round(alpha * 255)];
-        const backgroundRgb = hexToRgb(backgroundColorHex);
-
-        const opacity = rgbaColor[3] / 255;
-        const blendedRed = Math.round((1 - opacity) * backgroundRgb[0] + opacity * rgbaColor[0]);
-        const blendedGreen = Math.round((1 - opacity) * backgroundRgb[1] + opacity * rgbaColor[1]);
-        const blendedBlue = Math.round((1 - opacity) * backgroundRgb[2] + opacity * rgbaColor[2]);
-
-        return [blendedRed, blendedGreen, blendedBlue];
-
-    };
-
+    // Manipulate the colors of Lottie animated JSON file `AnimationTasks`
+    // To match with Telegram Client Theme
     const AnimationTasksColored = computed(() => {
 
         let animation = AnimationTasks;
@@ -363,16 +84,367 @@
 
     });
 
+    // === Computed Values ===
+
+    /* */
+
+    // === UI Events ===
+
+    const btnClickAddTask = async () => {
+
+        // If we are not `addingTask`
+        if (!(addingTask.value)) {
+
+            // Then we are `addingTask` (:
+            addingTask.value = true;
+
+            // So we wait for the nextTick() of Vue to process the update on `addingTask`
+            await nextTick();
+            // Then we focus on the addingTask <input> element and show the keyboard
+            addingTaskTitle.value.focus();
+
+            // Note: the reason for `await nextTick();` is due to a bug in iOS Safari that does not show keyboard otherwise
+        }
+
+    };
+
+    const btnClickDeleteTask = (taskID) => {
+
+        WebApp.showPopup({
+            title: i18nLocale.t('home.dialog_delete_task.title'),
+            message: i18nLocale.t('home.dialog_delete_task.message'),
+            buttons: [
+                { id: "cancel",  type: "cancel"     , text: i18nLocale.t('home.dialog_delete_task.buttons.cancel') },
+                { id: "confirm", type: "destructive", text: i18nLocale.t('home.dialog_delete_task.buttons.delete') },
+            ]
+        }, (id) => {
+
+            if (id === 'confirm') {
+
+                deleteTask(taskID);
+
+            }
+
+        });
+
+    };
+
+    const taskSwipeHandler = (direction, e) => {
+
+        // If we are in RTL direction language
+        if (document.body.classList.contains('rtl')) {
+
+            if (direction === 'right' && !(e.currentTarget.classList.contains('swiped'))) {
+
+                e.currentTarget.classList.add('swiped');
+
+            }else if (direction === 'left' && e.currentTarget.classList.contains('swiped')) {
+
+                e.currentTarget.classList.remove('swiped');
+
+            }
+
+        }else{
+
+            if (direction === 'left' && !(e.currentTarget.classList.contains('swiped'))) {
+
+                e.currentTarget.classList.add('swiped');
+
+            }else if (direction === 'right' && e.currentTarget.classList.contains('swiped')) {
+
+                e.currentTarget.classList.remove('swiped');
+
+            }
+
+        }
+
+    };
+
+    const taskKeyupHandler = async (e) => {
+
+        await nextTick();
+
+        // Hide the keyboard
+        e.target.blur();
+
+    };
+
+    const taskUpdateHandler = async (e) => {
+
+        // Update the value
+        tasks.value[e.target.getAttribute('data-task-id')].title = e.target.value;
+
+    };
+
+    // === UI Events ===
+
+    /* */
+
+    // === Actions ===
+
+    const addTask = async (e) => {
+
+        // If addingTaskTitle <input> value is not empty
+        if (addingTaskTitleText.value.length > 0) {
+            
+            // Generate a random MD5 hash and prefix it with `task_` as our taskID
+            let taskID = `task_${ generateRandomMD5() }`;
+
+            let task = {
+                title: addingTaskTitleText.value,
+                content: null, // null for now, may add details in future
+                created_at: parseInt(Date.now() / 1000),
+                updated_at: parseInt(Date.now() / 1000),
+                done: false,
+            };
+
+            // Save the task in LocalStorage
+            localStorage.setItem(taskID, JSON.stringify(task));
+            // Add the task to `tasks` and reactivity magic happens and updates the UI
+            tasks.value[taskID] = task;
+
+            WebApp.CloudStorage.setItem(taskID, localStorage.getItem(taskID), (error, success) => {
+                    
+                if (error) {
+                    
+                    // In case of failure, we add the task to our `pending_tasks` list
+                    let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+                    pending_tasks[taskID] = task;
+                    localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
+                    
+                    WebApp.HapticFeedback.notificationOccurred('error');
+                    return;
+
+                }
+
+                // Broadcast to our other active sessions (if any) that something has changed
+                channel.trigger('client-fetch', JSON.stringify({ action: 'add' }));
+
+                WebApp.HapticFeedback.notificationOccurred('success');
+
+            });
+
+        }
+
+        // Reset the addingTaskTitle <input> value
+        addingTaskTitleText.value = "";
+        // Hide the addingTaskTitle <input>
+        addingTask.value = false;
+
+    };
+
+    const fetchTasks = (useLocalStorage = true) => {
+
+        // If useLocalStorage is true, we will populate the `tasks` variable with LocalStorage cached values until we reach server
+        if (useLocalStorage) {
+
+            let localTasks = Object.fromEntries(Object.keys(localStorage).filter((key) => {
+
+                return /^task_[a-f0-9]{32}$/gi.test(key);
+
+            }).map((key) => {
+
+                return [ key, JSON.parse(localStorage.getItem(key)) ];
+
+            }));
+
+            tasks.value = localTasks;
+
+        }
+
+        WebApp.CloudStorage.getKeys((error, keys) => {
+            
+            if (error) {
+
+                WebApp.HapticFeedback.notificationOccurred('error');
+                return;
+
+            }
+
+            WebApp.CloudStorage.getItems(keys, (error, items) => {
+
+                if (error) {
+
+                    WebApp.HapticFeedback.notificationOccurred('error');
+                    return;
+
+                }
+
+                WebApp.HapticFeedback.notificationOccurred('success');
+
+                // Remove all the tasks from LocalStorage
+                Object.keys(tasks.value).forEach((key) => {
+                    
+                    localStorage.removeItem(key);
+
+                });
+
+                // Set all the retrieved tasks in LocalStorage
+                items = Object.fromEntries(
+                    Object.entries(items).map(([ key, value ]) => { 
+                        localStorage.setItem(key, value);
+                        return [ key, JSON.parse(value) ]; 
+                    })
+                );
+
+                // Update `tasks` value and let reactivity handle the UI update
+                tasks.value = items;
+
+            });
+
+        });
+
+    };
+
+    const updateTask = async (taskID) => {
+
+        // update the `update_at` timestamp
+        tasks.value[taskID].updated_at = parseInt(Date.now() / 1000);
+
+        localStorage.setItem(taskID, JSON.stringify(tasks.value[taskID]));
+
+        WebApp.CloudStorage.setItem(taskID, JSON.stringify(tasks.value[taskID]), (error, success) => {
+
+            if (error) {
+
+                // In case of failure, we add the task to our `pending_tasks` list
+                let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+                pending_tasks[taskID] = tasks.value[taskID];
+                localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
+                
+                WebApp.HapticFeedback.notificationOccurred('error');
+                return;
+
+            }
+
+            // If the task is in `pending_tasks` list, delete it, we have just synced it!
+            let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+            delete pending_tasks[taskID];
+            localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
+            
+            // Broadcast to our other active sessions (if any) that something has changed
+            channel.trigger('client-fetch', JSON.stringify({ action: 'toggle' }));
+
+            WebApp.HapticFeedback.notificationOccurred('success');
+
+        });
+
+    };
+
+    const deleteTask = async (taskID) => {
+
+        delete tasks.value[taskID];
+
+        localStorage.removeItem(taskID);
+
+        WebApp.CloudStorage.removeItem(taskID, (error, success) => {
+
+            if (error) {
+                
+                WebApp.HapticFeedback.notificationOccurred('error');
+                return;
+
+            }
+
+            // If the task is in `pending_tasks` list, delete it, we have just deleted it!
+            let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+            delete pending_tasks[taskID];
+            localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
+
+            // Broadcast to our other active sessions (if any) that something has changed
+            channel.trigger('client-fetch', JSON.stringify({ action: 'delete' }));
+
+            WebApp.HapticFeedback.notificationOccurred('success');
+
+        });
+
+    };
+
+    const performPendingTasks = () => {
+
+        // Retrieve the list of `pending_tasks`
+        let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+
+        Object.keys(pending_tasks).forEach((taskID) => {
+
+            // Try updating them to CloudStorage
+            WebApp.CloudStorage.setItem(taskID, JSON.stringify(pending_tasks[taskID]), (error, success) => {
+
+                if (error) {
+                    
+                    return;
+
+                }
+
+                // Delete the task from `pending_tasks`, we have just synced it!
+                let pending_tasks = JSON.parse(localStorage.getItem('pending_tasks')) || {};
+                delete pending_tasks[taskID];
+                localStorage.setItem('pending_tasks', JSON.stringify(pending_tasks));
+
+            });
+
+        });
+
+    };
+
+    // === Actions ===
+
+    /* */
+
+    // === Misc Methods ===
+
+    const generateRandomMD5 = () => {
+    
+        // Generate a random string
+        const randomString = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+
+        // Calculate MD5 hash of the random string using spark-md5 library
+        return SparkMD5.hash(randomString);
+
+    }
+
+    // Convert Hex Color to an RGB color with consideration of an Alpha value and a backgorund color
+    const hexAlphaToRGB = (colorHex, alpha, backgroundColorHex) => {
+
+        const hexToRgb = (hex) => {
+            hex = hex.replace(/^#/, '');
+            const bigint = parseInt(hex, 16);
+            const red = (bigint >> 16) & 255;
+            const green = (bigint >> 8) & 255;
+            const blue = bigint & 255;
+            return [red, green, blue];
+        };
+
+        const rgbaColor = [...hexToRgb(colorHex), Math.round(alpha * 255)];
+        const backgroundRgb = hexToRgb(backgroundColorHex);
+
+        const opacity = rgbaColor[3] / 255;
+        const blendedRed = Math.round((1 - opacity) * backgroundRgb[0] + opacity * rgbaColor[0]);
+        const blendedGreen = Math.round((1 - opacity) * backgroundRgb[1] + opacity * rgbaColor[1]);
+        const blendedBlue = Math.round((1 - opacity) * backgroundRgb[2] + opacity * rgbaColor[2]);
+
+        return [blendedRed, blendedGreen, blendedBlue];
+
+    };
+
+    // === Misc Methods ===
+
+    /* */
+
     onMounted(async () => {
 
+        // Fetch tasks
         fetchTasks();
 
+        // Watch for changes on `tasks`
         watch(tasks, () => {
 
             Object.entries(tasks.value).forEach(([ key, value ]) => {
 
+                // If an item is changed
                 if (JSON.stringify(value) !== (localStorage.getItem(key))) {
 
+                    // Update it
                     updateTask(key);
 
                 }
@@ -381,31 +453,37 @@
 
         }, { deep: true });
 
-        channel.bind('pusher:subscription_succeeded', () => {
+        // Initiate a Pusher instance with given keys in Environment Variables
+        const pusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
+            cluster: 'ap2',
+            authEndpoint: `${ import.meta.env.VITE_BACKEND_ENDPOINT }/pusher/auth`,
+            auth: {
+                params: {
+                    'initDataUnsafe': JSON.stringify(WebApp.initDataUnsafe),
+                }
+            }
+        });
 
+        // Subscribe to a private channel that is for our userId
+        const channel = pusher.subscribe(`private-${ WebApp.initDataUnsafe.user?.id }`);
+
+        // When subscription to our private channel succeeds
+        channel.bind('pusher:subscription_succeeded', () => {
+            
+            // We listen for an event called `client-fetch`
             channel.bind('client-fetch', function(data) {
 
+                // Fetch tasks, but exclude the LocalStorage since something new has happened on the other clients
                 fetchTasks(false);
 
             });
 
         });
 
+        // We also try performing `pending_tasks` if there is any
         performPendingTasks();
 
     });
-
-    const pusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
-        cluster: 'ap2',
-        authEndpoint: `${ import.meta.env.VITE_BACKEND_ENDPOINT }/pusher/auth`,
-        auth: {
-            params: {
-                'initDataUnsafe': JSON.stringify(WebApp.initDataUnsafe),
-            }
-        }
-    });
-
-    const channel = pusher.subscribe(`private-${ WebApp.initDataUnsafe.user?.id }`);
 
     WebApp.setHeaderColor('secondary_bg_color');
 </script>
