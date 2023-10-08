@@ -45,7 +45,7 @@
 
     };
 
-    const addTask = () => {
+    const addTask = async (e) => {
 
         if (addingTaskTitleText.value.length > 0) {
             
@@ -264,7 +264,7 @@
 
     }
 
-    const TaskSwipeHandler = (direction, e) => {
+    const taskSwipeHandler = (direction, e) => {
 
         if (document.body.classList.contains('rtl')) {
 
@@ -291,6 +291,20 @@
             }
 
         }
+
+    };
+
+    const taskKeyupHandler = async (e) => {
+
+        await nextTick();
+
+        e.target.blur();
+
+    };
+
+    const taskUpdateHandler = async (e) => {
+
+        tasks.value[e.target.getAttribute('data-task-id')].title = e.target.value;
 
     };
 
@@ -426,10 +440,10 @@
                 </div>
             </li>
 
-            <li v-for="(task, taskID) in tasksList" class="item-task" v-touch:swipe="TaskSwipeHandler" :key="taskID">
+            <li v-for="(task, taskID) in tasksList" class="item-task" v-touch:swipe="taskSwipeHandler" :key="taskID">
                 <div>
                     <Checkbox v-model:checked="task.done" />
-                    <input type="text" v-model="task.title" />
+                    <input type="text" :value="task.title" @keyup.enter="taskKeyupHandler" @change="taskUpdateHandler" :data-task-id="taskID" />
                 </div>
 
                 <div>
@@ -512,6 +526,7 @@
         #adding-task, .item-task {
 
             input[type=text] {
+                width: 100%;
                 border: none;
                 outline: none;
                 caret-color: var(--tg-theme-button-color);
