@@ -6,7 +6,7 @@ require_once __DIR__ . "/vendor/autoload.php";
 // Load .env file configurations using vlucas/phpdotenv library
 // and make them accessible via $_ENV
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+$dotenv->safeLoad();
 
 // Initialize a new OpenSwoole HTTP Server using the "OPENSWOOLE_SERVER_HOST"
 // and "OPENSWOOLE_SERVER_PORT" variables from the .env file
