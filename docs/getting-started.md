@@ -12,7 +12,7 @@ git clone https://github.com/erfanmola/SimpList.git
 
 ## Technologies Used
 
-At this step, We recommend you to read our brief explanation about [Technologies Used](/technologies-used) section in order to get a better understanding of what you are dealing with.
+At this step, We recommend you to read our brief explanation about [Technologies Used](/technologies-used) section in order to get a better understanding of what we are dealing with.
 
 ## Setting Up the FrontEnd
 
