@@ -7,7 +7,7 @@
 </script>
 
 <template>
-    <AuthProvider :hex_hmac_signature="hex_hmac_signature">
+    <component :is="hex_hmac_signature ? AuthProvider : 'div'" :hex_hmac_signature="hex_hmac_signature">
         <AppearanceProvider>
             <LocaleProvider>
                 <router-view></router-view>
@@ -17,7 +17,7 @@
         <template #unauthorized>
             Your client is not authorized, please use this WebApp from a valid Telegram Client
         </template>
-    </AuthProvider>
+    </component>
 
     <!-- Include liriliri/eruda developer console if we are in Development Mode -->
     <teleport to="head" v-if="devMode">
