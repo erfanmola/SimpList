@@ -22,9 +22,16 @@ export default defineConfig({
         ]
       },
       {
+        text: 'Preparation',
+        items: [
+          { text: 'Pusher', link: '/pusher' },
+          { text: 'Environment Variables', link: '/environment-variables' },
+        ]
+      },
+      {
         text: 'FrontEnd',
         items: [
-          { text: 'Setting Up FrontEnd', link: '' },
+          { text: 'Setting Up FrontEnd', link: '/setting-up-frontend' },
         ]
       },
       {
