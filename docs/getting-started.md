@@ -14,11 +14,15 @@ git clone https://github.com/erfanmola/SimpList.git
 
 At this step, We recommend you to read our brief explanation about [Technologies Used](/technologies-used) section in order to get a better understanding of what we are dealing with.
 
+## Preparation
+
+Before diving into the setup process, We need to setup [Pusher](/pusher) and [Environment Variables](/environment-variables).
+
 ## Setting Up the FrontEnd
+You can read our brief explanation about [Setting Up the FrontEnd](/setting-up-frontend) for installing, building and deploying the WebApp.
 
 ## Setting Up the BackEnd
-
-## Setting Up the Telegram Bot
+You can read our brief explanation about [Setting Up the BackEnd](/setting-up-backend) for installing and deploying the Backend Service of the WebApp.
 
 ## TeleVue
 
