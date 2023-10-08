@@ -3,6 +3,9 @@
 # SimpList
 SimpList is a Simple, Secure ToDo App that is built in Telegram. It's main purpose is for [Telegram Mini App Contest](https://t.me/contest/327)
 
+## Telegram WebApp
+You can access the SimpList WebApp in Telegram using [@SimpListBot](https://t.me/SimpListBot).
+
 ## Documentation
 SimpList has a comprehensive [Documentation](https://erfanmola.github.io/SimpList/), addressing multiple aspects of the technical development. We recommend you to start from there.
 
