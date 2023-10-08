@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@erfanmola/televue": "^0.1.0",
+    "@erfanmola/televue": "^0.1.1",
     "@twa-dev/sdk": "^6.9.0",
     "eruda": "^3.0.1",
     "lottie-colorify": "^0.8.0",
