@@ -16,7 +16,7 @@ If you deploy manually and oldSchool way, you can copy the `backend/.env.example
 
 ### Pusher
 
-```env
+```shell
 PUSHER_APP_ID= app_id of your pusher channel app
 PUSHER_KEY= key of your pusher channel app
 PUSHER_SECRET= secret of your pusher channel app
@@ -28,7 +28,7 @@ PUSHER_CLUSTTER= cluster of your pusher channel app
 
 `OPENSWOOLE_SERVER_PORT` Specifies the port number that OpenSwoole HTTP Server listens on.
 
-```env
+```shell
 OPENSWOOLE_SERVER_HOST=0.0.0.0
 OPENSWOOLE_SERVER_PORT=9501
 ```
@@ -38,7 +38,7 @@ OPENSWOOLE_SERVER_PORT=9501
 
 `BOT_TOKEN` Specifies the Token of the Bot that WebApp is being launched from, it's used for HMAC key generation for validation.
 
-```env
+```shell
 WEBAPP_AUTH_TTL=3600
 BOT_TOKEN=123456:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
@@ -46,7 +46,7 @@ BOT_TOKEN=123456:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ## FrontEnd
 
 ### Pusher
-```env
+```shell
 VITE_PUSHER_APP_ID= app_id of your pusher channel app
 VITE_PUSHER_KEY= key of your pusher channel app
 VITE_PUSHER_SECRET= secret of your pusher channel app
@@ -58,13 +58,13 @@ VITE_PUSHER_CLUSTTER= cluster of your pusher channel app
 
 If not specified or empty, SimpList ignores the `AuthProvider` of TeleVue.
 
-```env
+```shell
 VITE_HEX_HMAC_SIGNATURE= hmac signature of your bot token
 ```
 
 ### Etc
 `VITE_BACKEND_ENDPOINT` specifies the endpoint that the backend is deployed to, **It must be without trailing slash**. 
 
-```env
+```shell
 VITE_BACKEND_ENDPOINT= backend endpoint without trailing slash
 ```
