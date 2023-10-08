@@ -8,6 +8,9 @@
 
     // Retrive VITE_HEX_HMAC_SIGNATURE environment variable if available
     const hex_hmac_signature = import.meta.env.VITE_HEX_HMAC_SIGNATURE;
+
+    // Try to retrieve the saved `locale` from LocalStorage if available
+    const locale = localStorage.getItem('locale');
 </script>
 
 <template>
@@ -17,7 +20,7 @@
         <!-- AppearanceProvider: https://erfanmola.github.io/TeleVue/?path=/docs/providers-appearanceprovider--docs -->
         <AppearanceProvider>
             <!-- LocaleProvider: https://erfanmola.github.io/TeleVue/?path=/docs/providers-localeprovider--docs -->
-            <LocaleProvider>
+            <LocaleProvider :locale="locale">
                 <!-- Vue Router -->
                 <router-view></router-view>
             </LocaleProvider>

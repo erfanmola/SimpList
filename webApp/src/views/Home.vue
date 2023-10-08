@@ -15,7 +15,7 @@
     const i18nLocale = useI18n({ useScope: 'global' });
     
     // Set i18n locale based on the user's locale provided by <LocaleProvider>
-    i18nLocale.locale.value = inject('locale', 'en');
+    i18nLocale.locale.value = localStorage.getItem('locale') || inject('locale', 'en');
 
     // Define a reactive empty object that holds tasks
     const tasks = ref({});
@@ -506,6 +506,7 @@
     const channel = pusher.subscribe(`private-${ WebApp.initDataUnsafe.user?.id }`);
 
     WebApp.setHeaderColor('secondary_bg_color');
+    WebApp.BackButton.hide();
 </script>
 
 <template>
@@ -542,7 +543,7 @@
                         <path d="M7 0V14M0 7H14" stroke-width="1.995" />
                     </svg>
 
-                    <span>{{ $t('home.add_task') }}</span>
+                    <span class="no-select">{{ $t('home.add_task') }}</span>
                 </div>
             </li>
 
@@ -574,13 +575,13 @@
                         <path d="M9.50003 11L19 2.17177L16.9712 0L9.50003 7.13773L2.02881 0L-2.41856e-05 2.17177L9.50003 11Z" />
                     </svg>
 
-                    <span>{{ $t('home.show_n_more_task', { count: (Object.keys(tasks).length - visibletasksCount) }) }}</span>
+                    <span class="no-select">{{ $t('home.show_n_more_task', { count: (Object.keys(tasks).length - visibletasksCount) }) }}</span>
                 </div>
             </li>
 
         </List>
 
-        <div v-if="Object.keys(tasksList).length === 0 && !(addingTask)" id="no-tasks">
+        <div v-if="Object.keys(tasksList).length === 0 && !(addingTask)" id="no-tasks" class="no-select">
             {{ $t('home.no_tasks') }}
         </div>
 
