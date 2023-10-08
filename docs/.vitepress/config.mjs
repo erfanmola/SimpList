@@ -37,7 +37,13 @@ export default defineConfig({
       {
         text: 'BackEnd',
         items: [
-          { text: 'Setting Up BackEnd', link: '' },
+          { text: 'Setting Up BackEnd', link: '/setting-up-backend' },
+        ]
+      },
+      {
+        text: 'Etc',
+        items: [
+          { text: 'Suggestions', link: '/suggestions' },
         ]
       },
       {
