@@ -13,7 +13,8 @@ const i18n_fr = {
                 delete: 'Supprimer',
                 cancel: 'Annuler',
             }
-        }
+        },
+        swipe_to_delete_hint: 'Pour supprimer une tâche, faites glisser vers la gauche',
     },
 };
 

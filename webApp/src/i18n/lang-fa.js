@@ -13,7 +13,8 @@ const i18n_fa = {
                 delete: 'حذف',
                 cancel: 'لغو',
             }
-        }
+        },
+        swipe_to_delete_hint: 'برای حذف وظیفه، آن را به سمت راست بکشید',
     },
 };
 

@@ -13,7 +13,8 @@ const i18n_de = {
                 delete: 'Löschen',
                 cancel: 'Abbrechen',
             }
-        }
+        },
+        swipe_to_delete_hint: 'Um eine Aufgabe zu löschen, nach links wischen',
     },
 };
 

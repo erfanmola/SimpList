@@ -13,7 +13,8 @@ const i18n_en = {
                 delete: 'Delete',
                 cancel: 'Cancel',
             }
-        }
+        },
+        swipe_to_delete_hint: 'Swipe left to delete the task',
     },
 };
 

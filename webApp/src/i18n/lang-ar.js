@@ -13,7 +13,8 @@ const i18n_ar = {
                 delete: 'حذف',
                 cancel: 'إلغاء',
             }
-        }
+        },
+        swipe_to_delete_hint: 'لحذف المهمة، اسحبها لليمين',
     },
 };
 

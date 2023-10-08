@@ -13,7 +13,8 @@ const i18n_tr = {
                 delete: 'Sil',
                 cancel: 'İptal',
             }
-        }
+        },
+        swipe_to_delete_hint: 'Görevi silmek için sola kaydırın',
     },
 };
 
