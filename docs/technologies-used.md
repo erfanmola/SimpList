@@ -2,7 +2,7 @@
 In this section, we are going to describe every technology used in both frontend and backend of the project. We are going to explain the usage of each tool in the SimpList.
 
 ## FrontEnd
-Our aim in the frontend side of the project was to provide a modern development experience while keeping the project understandable and maintainable. That's why we chose the technologies and tools below.
+Our aim in the frontend side of the project is to provide a modern development experience while keeping the project understandable and maintainable. That's why we chose the technologies and tools below.
 
 ### Vite
 We scaffolded our project using the [Vite](https://vitejs.dev/). It's blazingly fast compared to it's competitors, just like comparing Telegram to it's rivals. (What was the name? Wat Sap or something?)
