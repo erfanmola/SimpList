@@ -15,6 +15,7 @@ If you deploy manually and oldSchool way, you can copy the `backend/.env.example
 ## BackEnd
 
 ### Pusher
+You need to obtain the values from your pusher channel app, [as described here](pusher#getting-app-keys).
 
 ```shell
 PUSHER_APP_ID= app_id of your pusher channel app
@@ -44,6 +45,9 @@ BOT_TOKEN=123456:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
 ## FrontEnd
+:::info
+All variables related to frontend are prefixed with `VITE_`.
+:::
 
 ### Pusher
 ```shell
