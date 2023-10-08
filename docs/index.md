@@ -6,6 +6,9 @@ hero:
   name: "SimpList"
   text: "Documentations & Setup Guide"
   tagline: Simple, Secure ToDo App built in your Telegram
+  image:
+    src: /SimpList.png
+    alt: SimpList
   actions:
     - theme: brand
       text: View WebApp
