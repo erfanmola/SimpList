@@ -17,6 +17,7 @@ export default defineConfig({
       {
         text: 'SimpList',
         items: [
+          { text: 'Introduction', link: '/introduction' },
           { text: 'Getting Started', link: '/getting-started' },
           { text: 'Technologies Used', link: '/technologies-used' }
         ]
