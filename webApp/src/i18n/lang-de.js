@@ -1,6 +1,7 @@
 const i18n_de = {
     general: {
         title: 'Einfach Liste',
+        language: 'Deutsch',
     },
     home: {
         add_task: 'Aufgabe hinzufügen',
@@ -15,6 +16,13 @@ const i18n_de = {
             }
         },
         swipe_to_delete_hint: 'Um eine Aufgabe zu löschen, nach links wischen',
+    },
+    settings: {
+        language: {
+            title: 'Sprache',
+            description: 'Setzen Sie Ihre bevorzugte Sprache',
+        },
+        copyright: 'Entwickelt von Erfan Mola mit TeleVue',
     },
 };
 

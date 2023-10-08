@@ -1,6 +1,7 @@
 const i18n_fr = {
     general: {
         title: 'Liste simple',
+        language: 'Français',
     },
     home: {
         add_task: 'Ajouter une tâche',
@@ -15,6 +16,13 @@ const i18n_fr = {
             }
         },
         swipe_to_delete_hint: 'Pour supprimer une tâche, faites glisser vers la gauche',
+    },
+    settings: {
+        language: {
+            title: 'Langue',
+            description: 'Définissez votre langue préférée',
+        },
+        copyright: 'Développé par Erfan Mola en utilisant TeleVue',
     },
 };
 

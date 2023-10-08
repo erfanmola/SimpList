@@ -1,6 +1,7 @@
 const i18n_ar = {
     general: {
         title: 'قائمة بسيطة',
+        language: 'العربية',
     },
     home: {
         add_task: 'إضافة مهمة',
@@ -15,6 +16,13 @@ const i18n_ar = {
             }
         },
         swipe_to_delete_hint: 'لحذف المهمة، اسحبها لليمين',
+    },
+    settings: {
+        language: {
+            title: 'اللغة',
+            description: 'اختر لغتك المفضلة',
+        },
+        copyright: 'تطوير بواسطة عرفان مولا باستخدام TeleVue',
     },
 };
 

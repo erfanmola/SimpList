@@ -1,6 +1,7 @@
 const i18n_tr = {
     general: {
         title: 'Basit Liste',
+        language: 'Türkçe',
     },
     home: {
         add_task: 'Görev Ekle',
@@ -15,6 +16,13 @@ const i18n_tr = {
             }
         },
         swipe_to_delete_hint: 'Görevi silmek için sola kaydırın',
+    },
+    settings: {
+        language: {
+            title: 'Dil',
+            description: 'Tercih ettiğiniz dili ayarlayın',
+        },
+        copyright: 'TeleVue kullanılarak geliştirilmiştir, Erfan Mola tarafından',
     },
 };
 

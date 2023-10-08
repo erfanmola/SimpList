@@ -1,6 +1,7 @@
 const i18n_fa = {
     general: {
         title: 'لیست ساده',
+        language: 'فارسی',
     },
     home: {
         add_task: 'افزودن وظیفه',
@@ -15,6 +16,13 @@ const i18n_fa = {
             }
         },
         swipe_to_delete_hint: 'برای حذف وظیفه، آن را به سمت راست بکشید',
+    },
+    settings: {
+        language: {
+            title: 'زبان',
+            description: 'زبان مورد نظر خود را تنظیم کنید',
+        },
+        copyright: 'توسعه یافته توسط عرفان مولا با استفاده از TeleVue',
     },
 };
 

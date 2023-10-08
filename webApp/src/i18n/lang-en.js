@@ -1,6 +1,7 @@
 const i18n_en = {
     general: {
         title: 'SimpList',
+        language: 'English',
     },
     home: {
         add_task: 'Add Task',
@@ -15,6 +16,13 @@ const i18n_en = {
             }
         },
         swipe_to_delete_hint: 'Swipe left to delete the task',
+    },
+    settings: {
+        language: {
+            title: 'Language',
+            description: 'Set your prefered language',
+        },
+        copyright: 'Developed by Erfan Mola using TeleVue',
     },
 };
 
