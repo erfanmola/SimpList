@@ -198,10 +198,19 @@
                 done: false,
             };
 
+            if (JSON.stringify(task).length > 4096) {
+                return;
+            }
+
             // Save the task in LocalStorage
             localStorage.setItem(taskID, JSON.stringify(task));
             // Add the task to `tasks` and reactivity magic happens and updates the UI
             tasks.value[taskID] = task;
+
+            // Reset the addingTaskTitle <input> value
+            addingTaskTitleText.value = "";
+            // Hide the addingTaskTitle <input>
+            addingTask.value = false;
 
             WebApp.CloudStorage.setItem(taskID, localStorage.getItem(taskID), (error, success) => {
                     
@@ -224,12 +233,12 @@
 
             });
 
-        }
+        }else{
 
-        // Reset the addingTaskTitle <input> value
-        addingTaskTitleText.value = "";
-        // Hide the addingTaskTitle <input>
-        addingTask.value = false;
+            // Hide the addingTaskTitle <input>
+            addingTask.value = false;
+
+        }
 
     };
 
@@ -300,6 +309,10 @@
 
         // update the `update_at` timestamp
         tasks.value[taskID].updated_at = parseInt(Date.now() / 1000);
+
+        if (JSON.stringify(tasks.value[taskID]).length > 4096) {
+            return;
+        }
 
         localStorage.setItem(taskID, JSON.stringify(tasks.value[taskID]));
 
@@ -453,20 +466,6 @@
 
         }, { deep: true });
 
-        // Initiate a Pusher instance with given keys in Environment Variables
-        const pusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
-            cluster: 'ap2',
-            authEndpoint: `${ import.meta.env.VITE_BACKEND_ENDPOINT }/pusher/auth`,
-            auth: {
-                params: {
-                    'initDataUnsafe': JSON.stringify(WebApp.initDataUnsafe),
-                }
-            }
-        });
-
-        // Subscribe to a private channel that is for our userId
-        const channel = pusher.subscribe(`private-${ WebApp.initDataUnsafe.user?.id }`);
-
         // When subscription to our private channel succeeds
         channel.bind('pusher:subscription_succeeded', () => {
             
@@ -485,6 +484,20 @@
 
     });
 
+    // Initiate a Pusher instance with given keys in Environment Variables
+    const pusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
+        cluster: 'ap2',
+        authEndpoint: `${ import.meta.env.VITE_BACKEND_ENDPOINT }/pusher/auth`,
+        auth: {
+            params: {
+                'initDataUnsafe': JSON.stringify(WebApp.initDataUnsafe),
+            }
+        }
+    });
+
+    // Subscribe to a private channel that is for our userId
+    const channel = pusher.subscribe(`private-${ WebApp.initDataUnsafe.user?.id }`);
+
     WebApp.setHeaderColor('secondary_bg_color');
 </script>
 
@@ -493,11 +506,11 @@
 
         <Vue3Lottie id="lottie-done" :animationData="AnimationTasksColored" :noMargin="true" :loop="false" />
 
-        <h1>{{ $t('general.title') }}</h1>
+        <h1 class="no-select">{{ $t('general.title') }}</h1>
 
         <List id="list-tasks">
 
-            <li @click="btnClickAddTask" style="color: var(--tg-theme-button-color);">
+            <li @click="btnClickAddTask" style="color: var(--tg-theme-button-color);cursor: pointer;">
                 <div>
                     <svg class="material-only" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="fill: var(--tg-theme-button-color);">
                         <path fill-rule="evenodd" clip-rule="evenodd" d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10ZM10 15.6667C9.2 15.6667 9 15 9 14.6667V11H5.33333C5 11 4.33333 10.8 4.33333 10C4.33333 9.2 5 9 5.33333 9H9V5.33333C9 5 9.2 4.33333 10 4.33333C10.8 4.33333 11 5 11 5.33333V9H14.6667C15 9 15.6667 9.2 15.6667 10C15.6667 10.8 15 11 14.6667 11H11V14.6667C11 15 10.8 15.6667 10 15.6667Z" />
@@ -548,6 +561,8 @@
         <div v-if="Object.keys(tasksList).length === 0 && !(addingTask)" id="no-tasks">
             {{ $t('home.no_tasks') }}
         </div>
+
+        <p v-else-if="!(addingTask)" class="no-select">{{ $t('home.swipe_to_delete_hint') }}</p>
         
     </div>
 </template>
@@ -653,6 +668,19 @@
                 }
             }
         }
+
+        > p {
+            margin: 0 auto;
+            width: 90%;
+            padding: 0 1rem;
+            color: var(--tg-theme-hint-color);
+        }
+    }
+
+    .no-select {
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
     }
 
     body.rtl {
