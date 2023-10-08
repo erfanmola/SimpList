@@ -7,7 +7,7 @@ hero:
   text: "Documentations & Setup Guide"
   tagline: Simple, Secure ToDo App built in your Telegram
   image:
-    src: /SimpList.png
+    src: https://raw.githubusercontent.com/erfanmola/SimpList/master/docs/SimpList.png
     alt: SimpList
   actions:
     - theme: brand
