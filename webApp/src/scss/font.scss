@@ -1,0 +1,27 @@
+@font-face {
+    font-family: "IRANYekanX";
+    src: url('../assets/fonts/IRANYekanX/woff2/IRANYekanXVF.woff2') format('woff2');
+    font-weight: normal;
+    font-display: swap;
+}
+
+@for $i from 1 through 19 {
+
+    @for $j from 1 to 6 {
+
+        .w#{$i * 50}-dots-#{$j} {
+            font-weight: #{$i * 50};
+            font-variation-settings: "wght" #{$i * 50}, "dots" #{$j};
+        }
+
+    }
+
+}
+
+html {
+    font-size: 15px;
+}
+
+body, input, button, select, p, h1, h2, h3, h4, h5, h6, textarea, span, div {
+    font-family: "IRANYekanX", Arial, Helvetica, sans-serif;
+}

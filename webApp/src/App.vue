@@ -18,7 +18,7 @@
     <!-- AuthProvider: https://erfanmola.github.io/TeleVue/?path=/docs/providers-authprovider--docs -->
     <component :is="hex_hmac_signature ? AuthProvider : 'div'" :hex_hmac_signature="hex_hmac_signature">
         <!-- AppearanceProvider: https://erfanmola.github.io/TeleVue/?path=/docs/providers-appearanceprovider--docs -->
-        <AppearanceProvider>
+        <AppearanceProvider :provideFonts="false">
             <!-- LocaleProvider: https://erfanmola.github.io/TeleVue/?path=/docs/providers-localeprovider--docs -->
             <LocaleProvider :locale="locale">
                 <!-- Vue Router -->
