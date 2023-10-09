@@ -48,6 +48,7 @@
     #language-list {
         display: flex;
         flex-direction: column;
+        line-height: 2;
 
         > li {
             display: flex;
