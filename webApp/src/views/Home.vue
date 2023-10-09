@@ -15,7 +15,7 @@
     const i18nLocale = useI18n({ useScope: 'global' });
     
     // Set i18n locale based on the user's locale provided by <LocaleProvider>
-    i18nLocale.locale.value = localStorage.getItem('locale') || inject('locale', 'en');
+    i18nLocale.locale.value = localStorage.getItem('simplist_locale') || inject('locale', 'en');
 
     // Define a reactive empty object that holds tasks
     const tasks = ref({});

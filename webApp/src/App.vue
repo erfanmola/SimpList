@@ -10,7 +10,7 @@
     const hex_hmac_signature = import.meta.env.VITE_HEX_HMAC_SIGNATURE;
 
     // Try to retrieve the saved `locale` from LocalStorage if available
-    const locale = localStorage.getItem('locale');
+    const locale = localStorage.getItem('simplist_locale');
 </script>
 
 <template>
