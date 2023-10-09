@@ -21,6 +21,7 @@
     const router = useRouter();
 
     WebApp.setHeaderColor('secondary_bg_color');
+    WebApp.setBackgroundColor('secondary_bg_color');
     WebApp.BackButton.onClick(() => { router.push('/'); });
     WebApp.BackButton.show();
 </script>

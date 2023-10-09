@@ -506,6 +506,7 @@
     const channel = pusher.subscribe(`private-${ WebApp.initDataUnsafe.user?.id }`);
 
     WebApp.setHeaderColor('secondary_bg_color');
+    WebApp.setBackgroundColor('secondary_bg_color');
     WebApp.BackButton.hide();
 </script>
 
