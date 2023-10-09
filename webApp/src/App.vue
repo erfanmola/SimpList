@@ -53,7 +53,7 @@
 <style lang="scss">
 
     body {
-        background-color: var(--tg-theme-bg-color);
+        background-color: var(--tg-theme-secondary-bg-color);
         color: var(--tg-theme-text-color);
     }
 
