@@ -37,7 +37,7 @@
             </List>
         </Section>
 
-        <p id="copyright">{{ $t('settings.copyright') }}</p>
+        <p id="copyright" class="no-select">{{ $t('settings.copyright') }}</p>
 
     </div>
 </template>
