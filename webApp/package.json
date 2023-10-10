@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@erfanmola/televue": "^0.1.4",
+    "@erfanmola/televue": "^0.1.5",
     "@twa-dev/sdk": "^6.9.0",
     "lottie-colorify": "^0.8.0",
     "pusher-js": "^8.3.0",
@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.4.0",
-    "sass": "^1.69.0",
+    "sass": "^1.69.1",
     "vite": "^4.4.11"
   }
 }
