@@ -56,10 +56,6 @@ We use [SparkMD5](https://www.npmjs.com/package/spark-md5) for calculating the M
 
 We use [@twa-dev/sdk](https://github.com/twa-dev/SDK) as a replacement for the legacy `telegram-web-app.js`. Telegram web dudes are a bunch of C++ developers familiar with HTML/CSS, they use JQuery and Bootstrap from the early 80's and they don't provide a modular solution nor a package for their Javascripts, that's why we use this as package a replacement. 
 
-### Eruda
-
-We use [Eruda](https://github.com/liriliri/eruda) console in dev mode as our DevTools alternative in Mobile platforms. I'm an i3wm user who [cannot use webApps on desktop](https://github.com/telegramdesktop/tdesktop/issues/26288), also an iOS user who has [no DevTools in mobile](https://core.telegram.org/bots/webapps#debug-mode-for-mini-apps), that's why I have to use this alternative console. You guys with Android/Windows/MacOS/Linux(supported DE's) will not have this problem.
-
 ## BackEnd
 Initally our aim was to go completely serverless, but [Pusher](#pusher) forced us to authorize our clients at server-side, that's we made a tiny backend for this purpose, **NO DATA IS STORED IN SERVER**.
 
