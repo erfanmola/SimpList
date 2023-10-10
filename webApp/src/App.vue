@@ -23,7 +23,7 @@
             </LocaleProvider>
         </AppearanceProvider>
 
-        <template #unauthorized>
+        <template #unauthorized v-if="hex_hmac_signature">
             Your client is not authorized, please use this WebApp from a valid Telegram Client
         </template>
     </component>
