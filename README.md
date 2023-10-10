@@ -10,11 +10,11 @@ You can access the SimpList WebApp in Telegram using [@SimpListBot](https://t.me
 SimpList has a comprehensive [Documentation](https://erfanmola.github.io/SimpList/), addressing multiple aspects of the technical development. We recommend you to start from there.
 
 ### Introduction
+- [Introduction](https://erfanmola.github.io/SimpList/introduction.html)
 - [Getting Started](https://erfanmola.github.io/SimpList/getting-started.html)
 - [Technologies Used](https://erfanmola.github.io/SimpList/technologies-used.html)
 
 ### Preparation
-- [Introduction](https://erfanmola.github.io/SimpList/introduction.html)
 - [Pusher](https://erfanmola.github.io/SimpList/pusher.html)
 - [Environment Variables](https://erfanmola.github.io/SimpList/environment-variables.html)
 
