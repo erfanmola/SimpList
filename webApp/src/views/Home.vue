@@ -551,14 +551,14 @@
             <li v-if="addingTask" id="adding-task">
                 <div>
                     <Checkbox :disabled="true" />
-                    <input type="search" enterkeyhint="done" v-model="addingTaskTitleText" ref="addingTaskTitle" @focusout="addingTask = false" @keyup.enter="addTask" />
+                    <input type="text" enterkeyhint="done" v-model="addingTaskTitleText" ref="addingTaskTitle" @focusout="addingTask = false" @keyup.enter="addTask" />
                 </div>
             </li>
 
             <li v-for="(task, taskID) in tasksList" class="item-task" v-touch:swipe="taskSwipeHandler" :key="taskID">
                 <div>
                     <Checkbox v-model:checked="task.done" />
-                    <input type="text" :value="task.title" @keyup.enter="taskKeyupHandler" @change="taskUpdateHandler" :data-task-id="taskID" />
+                    <input type="text" enterkeyhint="done" :value="task.title" @keyup.enter="taskKeyupHandler" @change="taskUpdateHandler" :data-task-id="taskID" />
                 </div>
 
                 <div>
