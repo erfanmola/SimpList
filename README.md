@@ -14,6 +14,7 @@ SimpList has a comprehensive [Documentation](https://erfanmola.github.io/SimpLis
 - [Technologies Used](https://erfanmola.github.io/SimpList/technologies-used.html)
 
 ### Preparation
+- [Introduction](https://erfanmola.github.io/SimpList/introduction.html)
 - [Pusher](https://erfanmola.github.io/SimpList/pusher.html)
 - [Environment Variables](https://erfanmola.github.io/SimpList/environment-variables.html)
 
