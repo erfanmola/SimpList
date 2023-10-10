@@ -551,7 +551,7 @@
             <li v-if="addingTask" id="adding-task">
                 <div>
                     <Checkbox :disabled="true" />
-                    <input type="text" v-model="addingTaskTitleText" ref="addingTaskTitle" @focusout="addingTask = false" @keyup.enter="addTask" />
+                    <input type="search" enterkeyhint="done" v-model="addingTaskTitleText" ref="addingTaskTitle" @focusout="addingTask = false" @keyup.enter="addTask" />
                 </div>
             </li>
 
