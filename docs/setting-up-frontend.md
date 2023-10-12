@@ -17,6 +17,10 @@ npm install
 
 ## Building the WebApp
 
+:::danger
+I am very sorry to inform this, But I just accidentally `unpublished` the `@erfanmola/televue@0.1.5` package from npm, there is no way to restore it, sorry for this inconvenience. Please change the `0.1.5` to `0.1.6` in `webApp/package.json` as I republished it, otherwise you will face error when trying `npm install`. 
+:::
+
 At this step, we are going to build our project with NPM. Built files are going to be outputted to `webApp/dist` folder.
 
 ```shell
