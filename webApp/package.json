@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@erfanmola/televue": "^0.1.5",
+    "@erfanmola/televue": "^0.1.6",
     "@twa-dev/sdk": "^6.9.0",
     "lottie-colorify": "^0.8.0",
     "pusher-js": "^8.3.0",
@@ -17,12 +17,12 @@
     "vue": "^3.3.4",
     "vue-i18n": "^9.5.0",
     "vue-router": "^4.2.5",
-    "vue3-lottie": "^3.1.0",
+    "vue3-lottie": "^3.2.0",
     "vue3-touch-events": "^4.1.8"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.4.0",
-    "sass": "^1.69.1",
+    "sass": "^1.69.3",
     "vite": "^4.4.11"
   }
 }
